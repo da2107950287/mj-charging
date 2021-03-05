@@ -20,6 +20,7 @@
       return {
         code: '',
         deviceId: '',//设备ID
+        clock: 0,
       }
     },
     created() {
@@ -47,7 +48,7 @@
         }).then(res => {
           if (res.code == 202) {
             this.$cookies.config('30d')
-            this.$cookies.set("token2", res.data.token) 
+            this.$cookies.set("token2", res.data.token)
             setStore('mobile', res.data.mobile);
             setStore('role', res.data.role);
             setStore('token', res.data.token);
@@ -60,32 +61,38 @@
     methods: {
       //通过code拿到相关数据
       login() {
-        this.$http('/userinfo/login', {
-          code: this.code,
-          deviceId: getStore('deviceId')
-        }).then(res => {
-          if (res.code == 200) {//未充电
-            this.$router.push('/home')
-          } else if (res.code == 202) {//正在充电
-            this.$router.push('/inCharging')
-          } else {
-            this.$toast.fail(res.msg);
-          }
-          this.$cookies.config('30d')
-          this.$cookies.set("token2", res.data.token) 
-          setStore('token1', res.data.token);
-
-          setStore('role', res.data.role);
-          setStore('token', res.data.token);
-          setStore('olId', res.data.olId);
-          setStore('mobile', res.data.mobile);
-        })
+        if (this.clock == 0) {
+          this.clock = 1;
+          this.$http('/userinfo/login', {
+            code: this.code,
+            deviceId: getStore('deviceId')
+          }).then(res => {
+            this.clock = 0;
+            if (res.code == 200) {//未充电
+              this.$router.push('/home')
+            } else if (res.code == 202) {//正在充电
+              this.$router.push('/inCharging')
+            } else {
+              this.$toast.fail(res.msg);
+            }
+            this.$cookies.config('30d')
+            this.$cookies.set("token2", res.data.token)
+            setStore('token1', res.data.token);
+            setStore('role', res.data.role);
+            setStore('token', res.data.token);
+            setStore('olId', res.data.olId);
+            setStore('mobile', res.data.mobile);
+          })
+        }
       },
       //用户同意授权，获取code
       submit() {
-        // let url = 'http://charge.linkzl.com/mjcharging/index.html?device=9541002'
-        let url = encodeURIComponent(`${window.location.href.split('#')[0]}#/auth`);
-        window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxe839e59a50cd2ce4&redirect_uri=${url}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect`
+        if (this.clock == 0) {
+          
+          let url = encodeURIComponent(`${window.location.href.split('#')[0]}#/auth`);
+          window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxe839e59a50cd2ce4&redirect_uri=${url}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect`
+        }
+        
       }
     }
   }

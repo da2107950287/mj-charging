@@ -1,14 +1,13 @@
 <template>
   <div class="my-field">
-
-    <van-field v-model="resultLabel"   readonly   @click="show = !show" class="font"/>
+    <van-field v-model="resultLabel" readonly @click="show = !show" class="font" />
     <van-popup v-model="show" position="bottom">
-      <van-picker v-bind="$attrs" :columns="columns" :default-index="selectValue" show-toolbar @cancel="cancel"
-        @confirm="onConfirm" @change="change" :value-key="option.label" />
+      <van-picker v-bind="$attrs" :columns="columns" item-height="44px" 
+        :default-index="selectValue" show-toolbar @cancel="cancel" @confirm="onConfirm" @change="change"
+        :value-key="option.label" class="picker"/>
     </van-popup>
   </div>
 </template>
-
 <script>
   export default {
     name: 'VanFieldSelectPicker',
@@ -89,7 +88,7 @@
 </script>
 <style scoped>
   .my-field {
-  display: block;
+    display: block;
     height: 30px;
     line-height: 30px;
     /* padding-left: 10px; */
@@ -100,11 +99,23 @@
     box-sizing: border-box;
 
   }
-  .font{
+
+  .font {
 
     padding-left: 16px;
     line-height: 30px;
     background-color: #f5f5f5;
     border-radius: 5px;
+  }
+
+  /* /deep/ .van-picker-column__item,
+  /deep/ .van-ellipsis ,
+  /deep/ .van-hairline-unset--top-bottom,
+  /deep/ .van-picker__frame{
+  
+    height: 44px!important;
+  } */
+  .picker,/deep/ van-picker-column__wrapper,/deep/ van-picker-column{
+    /* height: 300px; */
   }
 </style>

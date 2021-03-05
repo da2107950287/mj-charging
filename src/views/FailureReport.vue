@@ -5,12 +5,12 @@
       <div class="top common">
         <div class="title">米京充电线小程序申请获得：</div>
         <div class="text">设备SN：{{deviceId}}</div>
-        <div class="mobile">
+        <div class="mobile ">
           <div class="text">手机号：</div>
-          <van-field class="my-field" v-model="mobile" maxlength=11 type="number" placeholder="请输入手机号" />
+          <van-field class="my-field font" v-model="mobile" maxlength=11 type="tel" placeholder="请输入手机号" />
         </div>
       </div>
-      <div class="center common">
+      <div class="center common ">
         <div class="title">故障内容：</div>
         <van-field class="my-field" v-model="content" rows="2" type="textarea" maxlength="50" placeholder="请输入留言"
           show-word-limit />
@@ -36,6 +36,7 @@
 <script>
   import { getStore, isPhone } from '../assets/js/utils.js'
   import { uploadPost } from '../assets/js/http.js'
+  import lrz from 'lrz'
   export default {
     data() {
       return {
@@ -44,37 +45,47 @@
         olId: getStore('olId'),
         content: '',
         picture: '',
-        status: 0
+        status: 0,
+        timer: null
       }
     },
-    watch:{
-      mobile(){
-        this.mobile=this.mobile.replace(/[\W]/g,'');
+    watch: {
+      mobile() {
+        this.mobile = this.mobile.replace(/[\D]/g, '');
+      },
+      content() {
+        this.content = this.content.replace(/[^a-zA-Z0-9\u4E00-\u9FA5`~!@#$%^&*()_\-+=<>?:"{}|,.\/;'\\[\]·~！@#￥%……&*（）——\-+={}|《》？：“”【】、；‘’，。、]/g, '')
+    
       }
-    },
-    created() {
-
     },
     methods: {
       uploadImg(file) {
-        let formData = new FormData();
-        formData.append('myfiles', file.file)
-        if (file.file.size < 10 * 1024 * 1024) {
-          this.status = 1;
-          uploadPost('/upload/pictureOrVideo', formData).then(res => {
-            if (res.code == 200) {
-              this.status = 2;
-              this.picture = res.data;
-            } else {
-              this.$toast.fail(res.msg)
-            }
-          })
-        } else {
-          this.$toast.fail('图片大小超过10M')
-        }
+        let that = this, formData = new FormData();
+        let lrzFile
+        lrz(file.file).then(res => {
+          lrzFile = res.origin;
+          formData.append('myfiles', lrzFile)
+          if (file.file.size < 10 * 1024 * 1024) {
+            that.status = 1;
+            uploadPost('/upload/pictureOrVideo', formData).then(res => {
+              if (res.code == 200) {
+                that.status = 2;
+                that.picture = res.data;
+              } else {
+                that.$toast.fail(res.msg)
+              }
+            })
+          } else {
+            that.$toast.fail('图片大小超过10M')
+          }
+        })
+
+
 
       },
+
       submit() {
+
         if (this.mobile == '') {
           this.$toast.fail('手机号不能为空')
           return false;
@@ -89,20 +100,26 @@
         } else if (this.status == 1) {
           return false
         }
-        this.$http('/device/insertFault', {
-          mobile: this.mobile,
-          deviceId: this.deviceId,
-          content: this.content,
-          picture: this.picture,
-          olId: this.olId
-        }).then(res => {
-          if (res.code == 200) {
-            this.$toast.success(res.msg)
-            this.$router.push('/ChargeDetails')
-          } else {
-            this.$toast.fail(res.msg)
-          }
-        })
+        if (this.timer) {
+          clearTimeout(this.timer)
+        }
+        this.timer = setTimeout(() => {
+          this.$http('/device/insertFault', {
+            mobile: this.mobile,
+            deviceId: this.deviceId,
+            content: this.content,
+            picture: this.picture,
+            olId: this.olId
+          }).then(res => {
+            clearTimeout(this.timer)
+            if (res.code == 200) {
+              this.$toast.success(res.msg)
+              this.$router.push('/ChargeDetails')
+            } else {
+              this.$toast.fail(res.msg)
+            }
+          })
+        }, 1000)
       }
     }
   }
@@ -151,6 +168,12 @@
       .my-field {
         background-color: #f5f5f5;
         border-radius: 5px;
+
+
+      }
+
+      .font {
+        padding: 0;
       }
     }
 
@@ -163,10 +186,17 @@
       .mobile {
         display: flex;
 
+        align-items: center;
+        flex-wrap: nowrap;
+
+        .text {
+          flex-shrink: 0;
+          white-space: nowrap;
+        }
 
         .my-field {
           width: 250px;
-          height: 40px;
+          flex-shrink: 1;
           line-height: 24px;
 
         }
@@ -181,10 +211,6 @@
       .upload-img {
         width: 85px;
         height: 85px;
-
-
-
-
       }
 
     }
@@ -197,5 +223,20 @@
     }
 
 
+  }
+
+  .font,
+  .font/deep/ .van-cell__value {
+    padding-left: 16px;
+    line-height: 30px;
+    background-color: #f5f5f5;
+    border-radius: 5px;
+    height: 30px;
+
+  }
+
+  .flex {
+    display: flex;
+    align-items: center;
   }
 </style>

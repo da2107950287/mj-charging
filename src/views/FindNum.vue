@@ -58,13 +58,14 @@
         canClick: true,
         totalTime: 60,
         showSmsCode: false,
+        timer:null,
         errorMsg: '',
         imgcode: '',
         type: '',
         url1: '',
         url2: '',
-        rulesMobile: [{ required: true, message: '手机号不能为空' }],
-        rulesSmsCode: [{ required: true, message: '手机验证码不能为空' }],
+        rulesMobile: [{ required: true, message: ' ' }],
+        rulesSmsCode: [{ required: true, message: ' ' }],
       }
     },
     watch: {
@@ -74,10 +75,12 @@
       smsCode() {
         this.smsCode = this.smsCode.replace(/[\W]/g, '');
       },
+      mobile() {
+        this.mobile = this.mobile.replace(/[\D]/g, '');
+      }
 
     },
     created() {
-
       let ua = navigator.userAgent.toLowerCase();
       if (/iphone|ipad|ipod/.test(ua)) {
         this.type = "ios";
@@ -91,7 +94,9 @@
         if (this.mobile == '') {
           this.$toast.fail('手机号不能为空')
           return false;
-        } else if (!isPhone(this.mobile)) {
+        }
+
+        if (!isPhone(this.mobile)) {
           this.$toast.fail('手机号不正确')
           return false;
         } if (this.showSmsCode == false) {
@@ -105,18 +110,25 @@
           return false;
         }
 
-        this.$http('/orderlist/getMemberNo', {
-          mobile: this.mobile,
-          smsCode,
-          pageNum: 1,
-          pageSize: 4
-        }).then(res => {
-          if (res.code == 200) {
-            this.$router.push({ path: '/numList', query: { smsCode: smsCode, mobile: this.mobile } })
-          } else {
-            this.$toast.fail(res.msg)
-          }
-        })
+        if (this.timer) {
+          clearTimeout(this.timer)
+        }
+        this.timer = setTimeout(() => {
+          this.$http('/orderlist/getMemberNo', {
+            mobile: this.mobile,
+            smsCode,
+            pageNum: 1,
+            pageSize: 4
+          }).then(res => {
+            clearTimeout(this.timer)
+            if (res.code == 200) {
+              this.$router.push({ path: '/numList', query: { smsCode: smsCode, mobile: this.mobile } })
+            } else {
+              this.$toast.fail(res.msg)
+            }
+          })
+        }, 1000)
+
       },
       downloadApp() {
         if (this.type == 'ios') {
@@ -134,6 +146,8 @@
           this.$toast.fail('手机号不正确')
           return false;
         } else {
+
+
           this.$http('/orderlist/getImgCode', {
             mobile: this.mobile,
             businessType: 'queryMemberNo'
@@ -144,6 +158,7 @@
               this.getImgCode()
             }
           })
+
         }
       },
       getSmsCode() {
@@ -183,8 +198,6 @@
               }
             }, 1000);
           } else {
-        
-            this.canClick = true;
             this.errorMsg = res.msg;
           }
         })

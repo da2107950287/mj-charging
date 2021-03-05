@@ -14,7 +14,7 @@ export function initConfig(config) {
 }
 /* 微信支付 */
 export function wxpay(config, signData, _this) {
-  let that=_this;
+  let that = _this;
   return new Promise((reslove, reject) => {
     initConfig(config)
     wx.ready(function () {
@@ -34,13 +34,12 @@ export function wxpay(config, signData, _this) {
               signType: signData.signType, // 签名方式，默认为'SHA1'，使用新版支付需传入'MD5'
               paySign: signData.paySign, // 支付签名
               success: function (res) {
-                that.$router.push({ path: '/chargeDetails' })
                 setStore('olId', signData.olId)
-                console.log(res)
+                that.$router.push({ path: '/chargeDetails' })
                 reslove(res)
-                console.log('支付成功')
               },
               fail: function (error) {
+                that.$router.push({path:'/home'})
                 console.log('check api fail:', err)
               }
             });

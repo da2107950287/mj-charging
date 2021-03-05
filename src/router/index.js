@@ -40,54 +40,54 @@ const routes = [
   },
   {
     path: '/bindphone', name: 'Bindphone', component: Bindphone,
-    meta: { title: '绑定手机号' }
+    meta: { title: '米京快充' }
   },
   {
     path: '/home', name: 'Home', component: Home,
-    meta: { title: '首页' }
+    meta: { title: '米京快充' }
   },
   {
     path: '/chargeDetails', name: 'ChargeDetails', component: ChargeDetails,
-    meta: { title: '充电详情' }
+    meta: { title: '米京快充' }
   },
   {
     path: '/failureReport', name: 'FailureReport', component: FailureReport,
-    meta: { title: '故障上报' }
+    meta: { title: '米京快充' }
   },
 
   {
     path: '/cbtxLogin', name: 'CbtxLogin', component: CbtxLogin,
-    meta: { title: '藏宝天下' }
+    meta: { title: '米京快充' }
   },
 
   {
     path: '/order', name: 'Order', component: Order, meta:
-      { title: '我的订单' }
+      { title: '米京快充' }
   },
   {
     path: '/usingRecord', name: 'UsingRecord', component: UsingRecord,
-    meta: { title: '订单详情' }
+    meta: { title: '米京快充' }
   },
   {
     path: '/equipmentRegister', name: 'EquipmentRegister', component: EquipmentRegister,
-    meta: { title: '设备注册' }
+    meta: { title: '米京快充' }
   },
   {
     path: '/registered', name: 'Registered', component: Registered,
-    meta: { title: '设备注册' }
+    meta: { title: '米京快充' }
   },
   {
     path: '/inCharging', name: 'InCharging', component: InCharging,
-    meta: { title: '充电详情' }
+    meta: { title: '米京快充' }
   },
 
   {
     path: '/fault', name: 'Fault', component: Fault,
-    meta: { title: '故障选项' }
+    meta: { title: '米京快充' }
   },
   {
     path: '/registerSuccess', name: 'RegisterSuccess', component: RegisterSuccess,
-    meta: { title: '设备注册' }
+    meta: { title: '米京快充' }
   },
   
 

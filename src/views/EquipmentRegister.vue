@@ -38,11 +38,12 @@
         errorMsg: '',
         list: [],
         deviceId: getStore('deviceId'),
+        timer: null,
       }
     },
     watch: {
       roomId() {
-        this.roomId = this.roomId.replace(/[`~!@#$%^&*()_\-+=<>?:"{}|,./;'\\[\]·~！@#￥%……&*（）——\-+={}|《》？：“”【】、；‘’，。、]/g, '')
+        this.roomId = this.roomId.replace(/[^a-zA-Z0-9\u4E00-\u9FA5]/g, '')
       }
     },
     created() {
@@ -83,35 +84,45 @@
         })
       },
       submit() {
+
         if (this.hotId == '') {
           this.$toast.fail('所属项目不能为空')
           return false;
         }
-        if (this.validateRoomID()) {
-          let roomId = this.roomId.replace(/[ ]/g, "").replace(/[\r\n]/g, "").replace(/\u2006/g, '')
-          this.$http('/device/updateDevice', {
-            deviceId: this.deviceId,
-            roomId,
-            hotId: this.hotId
-          }).then(res => {
-            if (res.code == 200) {
-              this.$toast.success(res.msg);
-              let info = {
-                deviceId: getStore('deviceId'),
-                registerNumber1: res.data.registerNumber1,
-                registerNumber2: res.data.registerNumber2,
-                roomId: res.data.roomId,
-                hotName: res.data.hotName,
+        if(this.timer){
+          clearTimeout(this.timer)
+        }
+        this.timer=setTimeout(()=>{
+        
+          if (this.validateRoomID()) {
+            let roomId = this.roomId.replace(/[ ]/g, "").replace(/[\r\n]/g, "").replace(/\u2006/g, '')
+            this.$http('/device/updateDevice', {
+              deviceId: this.deviceId,
+              roomId,
+              hotId: this.hotId
+            }).then(res => {
+              this.clock = 0;
+              if (res.code == 200) {
+                this.$toast.success(res.msg);
+                let info = {
+                  deviceId: getStore('deviceId'),
+                  registerNumber1: res.data.registerNumber1,
+                  registerNumber2: res.data.registerNumber2,
+                  roomId: res.data.roomId,
+                  hotName: res.data.hotName,
+                }
+                this.$router.push({ path: '/registerSuccess', query: info })
+              } else {
+                this.$toast.fail(res.msg)
               }
-              this.$router.push({ path: '/registerSuccess', query: info })
-            } else {
-              this.$toast.fail(res.msg)
-            }
-          })
+            })
+          
+
+
         }
 
-
-
+        },1000)
+        
       }
     },
 
@@ -129,6 +140,8 @@
     padding: 0 16px;
   }
 
+ 
+
   .register {
     padding: 0 30px;
     margin-top: 10px;
@@ -144,6 +157,11 @@
       width: 86px;
       font-size: 16px;
       color: #000;
+    }
+
+    span {
+      color: #323233;
+      font-size: 16px;
     }
 
     .my-field {

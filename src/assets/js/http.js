@@ -24,7 +24,7 @@ export function http(url, data = {}, method = 'post') {
     const instance = originAxios.create({});
     // 配置请求和响应拦截
     instance.interceptors.request.use(config => {
-      console.log(getStore("token"),200)
+      console.log(getStore("token"), 200)
       if (getStore("token")) {
         config.headers.token = getStore("token");
       }
@@ -33,11 +33,9 @@ export function http(url, data = {}, method = 'post') {
       return err;
     })
     instance.interceptors.response.use(response => {
-      // if (response.data.code == 501) {
-      //   let url = encodeURIComponent(`${window.location.href.split('#')[0]}#/auth`);
-      //   window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxe839e59a50cd2ce4&redirect_uri=${url}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect`
-
-      // }
+      if (response.data.code == 501) {
+        window.location.href = `${window.location.href.split('#')[0]}#/auth`
+      }
       return response.data;
     }, err => {
       if (err && err.response) {
@@ -70,7 +68,6 @@ export function uploadPost(url, data) {
       'Content-Type': 'multipart/form-data'
     }
   }
-
   return new Promise((resolve, reject) => {
     // 1.创建axios的实例
     const instance = originAxios.create({
@@ -86,12 +83,9 @@ export function uploadPost(url, data) {
       return err
     })
     instance.interceptors.response.use(response => {
-
-      // if (response.data.code == 501) {
-      
-      //   let url = encodeURIComponent(`${window.location.href.split('#')[0]}#/auth`);
-      //   window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxe839e59a50cd2ce4&redirect_uri=${url}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect`
-      // }
+      if (response.data.code == 501) {
+        window.location.href = `${window.location.href.split('#')[0]}#/auth`
+      }
       return response.data
     }, err => {
       if (err && err.response) {

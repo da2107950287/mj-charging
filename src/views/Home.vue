@@ -24,7 +24,7 @@
       <van-button v-if="state==1" class="btn" color="#D4AD6A" block @click="submit">开始充电</van-button>
       <van-button v-else-if="state==2" class="btn" color="#D4AD6A" block @click="$router.push('/ChargeDetails')">充电中
       </van-button>
-      <div class="tips">注：登录或注册会员即可享受会员免费充电服务</div>
+      <div class="tips">登录或注册会员即可享受会员免费充电服务</div>
     </div>
   </div>
 </template>
@@ -58,10 +58,11 @@
       cbtxLogin() {
         setStore('id', this.id)
         setStore('isCbtx', 1)
-        console.log(!this.mobile )
-        if (!this.mobile && this.role == 1) {
+        if (this.state == 2) {
+          this.$router.push('/ChargeDetails')
+        } else if (!this.mobile && this.role == 1 && this.state == 1) {
           this.$router.push('/bindPhone')
-        } else if (this.mobile && this.role == 1) {
+        } else if (this.mobile && this.role == 1 && this.state == 1) {
           this.$router.push('/cbtxLogin')
         }
       },
@@ -230,12 +231,11 @@
     }
 
     .tips {
-      margin: 45px 0 35px;
+      margin: 5px 0 35px;
       text-align: center;
       font-size: 13px;
       color: #D4AD6A;
 
     }
   }
-
 </style>

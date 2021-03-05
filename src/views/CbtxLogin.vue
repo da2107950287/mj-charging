@@ -15,7 +15,8 @@
               <span class="iconfont  icon-yonghu"></span>
             </template>
           </van-field>
-          <van-field type="password" class="my-input mt20" mixlength="1" maxlength="16" v-model="passWord" placeholder="请输入密码" :rules="rulesVerify">
+          <van-field type="password" class="my-input mt20" mixlength="1" maxlength="16" v-model="passWord"
+            placeholder="请输入密码" :rules="rulesVerify">
             <template #left-icon>
               <span class="iconfont  icon-mima1"></span>
             </template>
@@ -37,9 +38,9 @@
 </template>
 <script>
   import { setStore, getStore, isPhone } from "../assets/js/utils.js"
-import myMixin from '../assets/js/mixin.js'
+  import myMixin from '../assets/js/mixin.js'
   export default {
-    mixins:[myMixin],
+    mixins: [myMixin],
     data() {
       return {
         loginName: '',
@@ -47,13 +48,17 @@ import myMixin from '../assets/js/mixin.js'
         type: '',
         url1: '',
         url2: '',
-        rulesMobile: [{ required: true, message: '伯乐号不能为空' }],
-        rulesVerify: [{ required: true, message: '密码不能为空' }]
+        timer: null,
+        rulesMobile: [{ required: true, message: ' ' }],
+        rulesVerify: [{ required: true, message: ' ' }]
       }
     },
-    watch:{
-      passWord(){
-        this.passWord=this.passWord.replace(/[\W]/g,'');
+    watch: {
+      passWord() {
+        this.passWord = this.passWord.replace(/[\W]/g, '');
+      },
+      loginName() {
+        this.loginName = this.loginName.replace(/[\D]/g, '');
       }
     },
     created() {
@@ -74,19 +79,28 @@ import myMixin from '../assets/js/mixin.js'
       },
       onSubmit() {
         let passWord = this.passWord.replace(/[ ]/g, "").replace(/[\r\n]/g, "").replace(/\u2006/g, '')
-        this.$http('/orderlist/treasureWorldLogin', {
-          deviceId: getStore('deviceId'),
-          loginName: this.loginName,
-          passWord
-        }).then(res => {
-          if (res.code == 200) {
-            setStore('olId', res.data.olId)
-            this.$router.push({ path: '/chargeDetails', query: { olId: res.data.olId } })
-          } else if (res.code == 500) {
-            this.$toast.fail(res.msg)
-          }
+        if (this.timer) {
+          clearTimeout(this.timer)
+        }
+        this.timer = setTimeout(() => {
+          this.$http('/orderlist/treasureWorldLogin', {
+            deviceId: getStore('deviceId'),
+            loginName: this.loginName,
+            passWord
+          }).then(res => {
+            clearTimeout(this.timer)
+            if (res.code == 200) {
+              setStore('olId', res.data.olId)
+              this.$router.push({ path: '/chargeDetails', query: { olId: res.data.olId } })
+            } else if (res.code == 500) {
+              this.$toast.fail(res.msg)
+            }
 
-        })
+          })
+        }, 1000)
+
+
+
       }
 
     }
@@ -147,7 +161,7 @@ import myMixin from '../assets/js/mixin.js'
         border-radius: 9px;
       }
 
-     
+
     }
 
     .download-box {

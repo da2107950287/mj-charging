@@ -5,14 +5,15 @@
       <div>米京快充</div>
     </div>
     <div class="center">
-      <van-form @submit="onSubmit">
+      <van-form>
         <van-field class="my-input" v-model="mobile" maxlength="11" type="tel" placeholder="请输入手机号"
           :rules="rulesMobile">
           <template #left-icon>
             <span class="iconfont  icon-yonghu"></span>
           </template>
         </van-field>
-        <van-field class="my-input mt20" v-model="verify" minlength="1" maxlength="8" type="tel"  placeholder="请输入验证码" :rules="rulesVerify">
+        <van-field class="my-input mt20" v-model="verify" minlength="1" maxlength="8" type="tel" placeholder="请输入验证码"
+          :rules="rulesVerify">
           <template #left-icon>
             <span class="iconfont  icon-mima1"></span>
           </template>
@@ -20,8 +21,9 @@
             <span class="code" @click="getCode">{{codeMsg}}</span>
           </template>
         </van-field>
+        <div class="tips">请绑定手机号后进行使用</div>
         <div class="btns">
-          <van-button class="btn" block color="#D4AD6A" native-type="submit">绑定手机</van-button>
+          <van-button class="btn" block color="#D4AD6A" @click="onSubmit">绑定手机</van-button>
         </div>
       </van-form>
     </div>
@@ -30,10 +32,10 @@
 <script>
   import { setStore, getStore, isPhone } from "../assets/js/utils.js"
   import { wxpay } from '../assets/js/wx.js'
-
   export default {
     data() {
       return {
+        timer: null,
         mobile: '',//手机号
         verify: '',//验证码
         isCbtx: getStore('isCbtx'),//1藏宝天下登录
@@ -43,13 +45,16 @@
         deviceId: getStore('deviceId'),//设备ID
         id: getStore('id'),//费用ID
         isRegistered: getStore('isRegistered'),//设备是否注册
-        rulesMobile: [{ required: true, message: '手机号不能为空' }],
-        rulesVerify: [{ required: true, message: '验证码不能为空' }]
+        rulesMobile: [{ required: true, message: ' ' }],
+        rulesVerify: [{ required: true, message: ' ' }]
       }
     },
-    watch:{
-      verify(){
-        this.verify=this.verify.replace(/[\W]/g,'');
+    watch: {
+      verify() {
+        this.verify = this.verify.replace(/[\W]/g, '');
+      },
+      mobile() {
+        this.mobile = this.mobile.replace(/[\D]/g, '');
       }
     },
     methods: {
@@ -82,32 +87,7 @@
           if (res.code == 200) {
             this.$toast.success(res.msg)
           } else {
-            this.canClick = true;//这里重新开启
             this.$toast.fail(res.msg)
-          }
-        })
-      },
-      //获取签名，
-      getConfig() {
-        this.$http('/userinfo/getConfig', {
-          url: window.location.href.split('#')[0]
-          // url: 'http://charge.linkzl.com/mjcharging/index.html'
-        }).then(res => {
-          if (res.code == 200) {
-            this.obj = res.data;
-            this.insertOrderlist()
-          }
-        })
-      },
-      //获取支付参数
-      insertOrderlist() {
-        this.$http('/orderlist/insertOrderlist', {
-          deviceId: this.deviceId,
-          id: this.id
-        }).then(res => {
-          if (res.code == 200) {
-            this.signData = res.data;
-            wxpay(this.obj, this.signData, this)
           }
         })
       },
@@ -124,34 +104,29 @@
           this.$toast.fail('验证码不能为空')
           return false;
         }
-        this.$http('/userinfo/bindAccount', {
-          mobile: this.mobile,
-          verify
-        }).then(res => {
-          if (res.code == 200) {
-            this.$cookies.config('30d')
-            this.$cookies.set("token2", res.data.token) 
-            setStore('role', res.data.role);
-            setStore('token', res.data.token);
-            setStore('olId', res.data.olId);
-            setStore('mobile', res.data.mobile);
-            // this.$router.push('/home')
-            this.$nextTick(() => {
-              if (this.isRegistered == 1 && getStore('role') == 2) {
-                this.$router.push('/registered')
-              } else if (this.isRegistered == 2 && getStore('role') == 2) {
-                this.$router.push('/equipmentRegister')
-              } else if (getStore('role') == 1 && this.isCbtx == 1) {
-                this.$router.push('/cbtxLogin')
-              } else if (getStore('role') == 1 && this.isCbtx == 2) {
-                this.getConfig()
-              }
-            })
-          } else if (res.code == 500) {
-            this.canClick = true;
-            this.$toast.fail(res.msg)
-          }
-        })
+        if (this.timer) {
+          clearTimeout(this.timer)
+        }
+
+        this.timer = setTimeout(() => {
+          this.$http('/userinfo/bindAccount', {
+            mobile: this.mobile,
+            verify
+          }).then(res => {
+            clearTimeout(this.timer)
+            if (res.code == 200) {
+              setStore('role', res.data.role);
+              setStore('token', res.data.token);
+              setStore('olId', res.data.olId);
+              setStore('mobile', res.data.mobile);
+              this.$nextTick(() => {
+                this.$router.push('/home');
+              })
+            } else if (res.code == 500) {
+              this.$toast.fail(res.msg)
+            }
+          })
+        }, 1000)
       }
     }
   }
@@ -200,12 +175,20 @@
     }
 
     .btns {
-      margin-top: 54px;
+      margin-top: 30px;
 
       .btn {
         border-radius: 9px;
       }
-   
+
     }
+  }
+
+  .tips {
+    margin: 10px 0 35px;
+    text-align: left;
+    font-size: 13px;
+    color: #D4AD6A;
+
   }
 </style>

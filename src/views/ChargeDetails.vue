@@ -26,7 +26,8 @@
       return {
         olId: getStore('olId'),
         pwdArr: [],
-        beforeUrl: ''
+        beforeUrl: '',
+        clock: 0,
       }
     },
 
@@ -40,16 +41,21 @@
     },
     methods: {
       updatePassword() {
-        this.$http('/orderlist/updatePassword', {
-          olId: this.olId
-        }).then(res => {
-          if (res.code == 200) {
-            this.pwdArr = res.data.password.toString().split('')
-            this.$toast.success(res.msg)
-          } else {
-            this.$toast.fail(res.msg)
-          }
-        })
+        if (this.clock == 0) {
+          this.clock = 1;
+          this.$http('/orderlist/updatePassword', {
+            olId: this.olId
+          }).then(res => {
+            this.clock = 0;
+            if (res.code == 200) {
+              this.pwdArr = res.data.password.toString().split('')
+              this.$toast.success(res.msg)
+            } else {
+              this.$toast.fail(res.msg)
+            }
+          })
+        }
+
       },
       showOrderlist() {
         this.$http('/orderlist/showOrderlist', {

@@ -3,7 +3,7 @@
     <van-nav-bar title="我的订单" fixed left-arrow @click-left="$router.push('/home')" />
     <div class="content">
       <van-pull-refresh class="list" v-model="isLoading" @refresh="onRefresh">
-        <van-list v-model="loading" :finished="finished" finished-text="暂无更多数据" @load="getOrderlist">
+        <van-list v-model="loading" :finished="finished" finished-text="" @load="handleScroll">
           <div class="order-item" v-for="item in list" :key="item.olId">
             <div class="order-num common">
               <span class="order-title">订单号：</span>
@@ -25,6 +25,11 @@
             </div>
             <div class="info float-right" @click="$router.push({path:'/usingRecord',query:{olId:item.olId}})">查看详情</div>
           </div>
+          <div v-if="isEmpty==1" style="position: fixed;top: 50%;left: 50%;transform: translate(-50%,-50%);">
+            <img src="../assets/img/empty.png" alt="">
+            <div style="text-align: center;color: #aaa;font-size: 16px;">暂无数据</div>
+          </div>
+          <div v-if="isEmpty==2" style="text-align: center;color: #aaa;font-size: 16px;padding: 10px">暂无更多数据</div>
         </van-list>
       </van-pull-refresh>
     </div>
@@ -33,35 +38,69 @@
 <script>
   import myMixin from '../assets/js/mixin.js'
   export default {
-    mixins:[myMixin],
+    mixins: [myMixin],
     data() {
       return {
         PageNumber: 1,
         PageSize: 10,
+        isEmpty: 0,
+        clock: 0,//1 可以请求数据
         isLoading: false,// 是否处于加载中状态
         loading: false,// 是否处于加载状态
         finished: false,// 是否已加载完成
         list: []
       }
     },
+    created(){
+      this.getOrderlist()
+    },
     methods: {
       getOrderlist() {
         this.loading = true;
         this.$http('/orderlist/getOrderlist', {
-          PageNumber: this.PageNumber++,
+          PageNumber: this.PageNumber,
           PageSize: this.PageSize
         }).then(res => {
           if (res.code == 200) {
+            this.clock = 1;
             this.loading = false;
             this.list = [...this.list, ...res.data];
-            if (res.data.length == 0) {
+            if (this.PageSize != res.data.length) {
+              if (res.data.length == 0) {
+                this.isEmpty = 1;
+              } else {
+                this.isEmpty = 2;
+              }
               this.finished = true;
             }
+
           }
         })
       },
+      handleScroll() {
+        if (this.clock == 1) {
+          this.clock = 2;
+          this.loading = true;
+          this.$http('/orderlist/getOrderlist', {
+            PageNumber: ++this.PageNumber,
+            PageSize: this.PageSize
+          }).then(res => {
+            if (res.code == 200) {
+              this.clock = 1;
+              this.loading = false;
+              this.list = [...this.list, ...res.data];
+              if (this.PageSize > res.data.length) {
+                this.isEmpty = 2;
+                this.finished = true;
+              }
+            }
+          })
+        }
+
+      },
       onRefresh() {
         this.PageNumber = 1;
+        this.isEmpty = 0;
         this.isLoading = false;
         this.finished = false;
         this.list = []
